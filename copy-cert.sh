@@ -1,3 +1,14 @@
+#!/bin/bash
+
+echo "Enter the path to your private registry's self-signed CA cert (must be full path):\n"
+read rootCA
+
+echo "Enter the name of your guest cluster:\n"
+read gcname
+
+echo "Enter the namespace which contains your guest cluster:\n"
+read gcnamespace
+
 [ -z "$rootCA" -o -z "$gcname" -o -z "$gcnamespace" ] && echo "Error: Root CA cert, guest cluster name and guest cluster namespace must not be blank" && exit
 
 workdir="/tmp/$gcnamespace-$gcname"
