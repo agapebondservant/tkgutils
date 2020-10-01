@@ -1,14 +1,3 @@
-#!/bin/bash
-
-echo "Enter the path to your private registry's self-signed CA cert (must be full path):\n"
-read rootCA
-
-echo "Enter the name of your guest cluster:\n"
-read gcname
-
-echo "Enter the namespace which contains your guest cluster:\n"
-read gcnamespace
-
 [ -z "$rootCA" -o -z "$gcname" -o -z "$gcnamespace" ] && echo "Error: Root CA cert, guest cluster name and guest cluster namespace must not be blank" && exit
 
 workdir="/tmp/$gcnamespace-$gcname"
@@ -38,3 +27,15 @@ scp -q -i $sshkey -o StrictHostKeyChecking=no $capath vmware-system-user@$node_i
 kubectl get secret -n $gcnamespace $gcname"-ssh" -o jsonpath='{.data.ssh-privatekey}' | base64 --decode > $sshkey
 [ $? != 0 ] && echo " please check existence of guest cluster private key secret" && exit
 chmod 600 $sshkey
+
+#get guest cluster kubeconfig
+kubectl get secret -n $gcnamespace $gcname"-kubeconfig" -o jsonpath='{.data.value}' | base64 --decode > $gckubeconfig
+[ $? != 0 ] && echo " please check existence of guest cluster private key secret" && exit
+
+# get IPs of each guest cluster nodes
+iplist=$(KUBECONFIG=$gckubeconfig kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}')
+for ip in $iplist
+do
+echo "installing root ca into node $ip (needs about 10 seconds)... "
+installCA $ip $rootCA && echo "Successfully installed root ca into node $ip" || echo "Failed to install root ca into node $ip"
+done
