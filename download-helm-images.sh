@@ -4,6 +4,8 @@
 # Example:  
 #         ./download-helm-images.sh bitnami/mychart localhost:5000 
 #         ./download-helm-images.sh bitnami/mychart myregistry/projectred admin pw123
+# Pre-reqs: 
+#       On Mac, may require gnu-sed library (brew install gnu-sed)
 #
 #############################################################################################################################
 
